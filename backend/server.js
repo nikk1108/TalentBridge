@@ -5,48 +5,57 @@ const path = require('path');
 const { connectDB, getIsMock } = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
-// Load environment variables
 dotenv.config();
-
-// Connect to Database
-connectDB();
 
 const app = express();
 
-// Standard Middleware
+// 🔥 Connect DB FIRST (good practice)
+connectDB();
+
+// 🔧 CORS FIX (production + local safe)
 app.use(cors({
-  origin: '*', // For development, allow any origin
+  origin: process.env.FRONTEND_URL || "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
+
+// Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve Static Uploads
+// Static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Basic Health/Status Route
+// ✅ TEST ROUTE (IMPORTANT FOR DEBUGGING)
+app.get('/', (req, res) => {
+  res.send('TalentBridge API is running');
+});
+
+// Health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
-    database: getIsMock() ? 'In-Memory Fallback Mock DB' : 'MongoDB Connected',
+    database: getIsMock() ? 'Mock DB' : 'MongoDB Connected',
     time: new Date()
   });
 });
 
-// Route Handlers
+// ======================
+// 🔥 API ROUTES
+// ======================
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/jobs', require('./routes/jobRoutes'));
 app.use('/api/candidates', require('./routes/candidateRoutes'));
 
-// Error Handlers
+// Error handlers (KEEP LAST)
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+// Port (Render requirement)
+const PORT = process.env.PORT || 10000;
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-  if (getIsMock()) {
-    console.log('⚠️ Running in OFFLINE MOCK MODE. No external database required.');
-  }
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`DB Status: ${getIsMock() ? "MOCK" : "CONNECTED"}`);
 });
