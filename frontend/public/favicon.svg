@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <!-- Mask to cut a clean gap in the Left Pier around the Bridge Deck and the Right Pier -->
+    <mask id="logo-left-pier-mask">
+      <rect width="24" height="24" fill="white" stroke="none" />
+      <!-- Cut out Bridge Deck -->
+      <path 
+        d="M 5.5 12.5 Q 12 8 18.5 12.5" 
+        stroke="black" 
+        stroke-width="5.5" 
+        stroke-linecap="round" 
+        fill="none" 
+      />
+      <!-- Cut out Right Pier -->
+      <rect 
+        x="13.75" 
+        y="6" 
+        width="3.5" 
+        height="14" 
+        rx="1.75" 
+        transform="rotate(20 15.5 13)" 
+        fill="black"
+        stroke="black"
+        stroke-width="2"
+        stroke-linejoin="round"
+      />
+    </mask>
+
+    <!-- Mask to cut a clean gap in the Bridge Deck around the Right Pier -->
+    <mask id="logo-deck-mask">
+      <rect width="24" height="24" fill="white" stroke="none" />
+      <!-- Cut out Right Pier -->
+      <rect 
+        x="13.75" 
+        y="6" 
+        width="3.5" 
+        height="14" 
+        rx="1.75" 
+        transform="rotate(20 15.5 13)" 
+        fill="black"
+        stroke="black"
+        stroke-width="2"
+        stroke-linejoin="round"
+      />
+    </mask>
+  </defs>
+
+  <!-- Left Pier - Premium SaaS Purple -->
+  <rect 
+    x="6.75" 
+    y="6" 
+    width="3.5" 
+    height="14" 
+    rx="1.75" 
+    transform="rotate(-20 8.5 13)" 
+    fill="#7C3AED" 
+    mask="url(#logo-left-pier-mask)"
+  />
+
+  <!-- Bridge Deck - Vibrant Pink/Fuchsia -->
+  <path 
+    d="M 5.5 12.5 Q 12 8 18.5 12.5" 
+    stroke="#EC4899" 
+    stroke-width="3.5" 
+    stroke-linecap="round" 
+    fill="none" 
+    mask="url(#logo-deck-mask)"
+  />
+
+  <!-- Right Pier - Vibrant Rose/Coral -->
+  <rect 
+    x="13.75" 
+    y="6" 
+    width="3.5" 
+    height="14" 
+    rx="1.75" 
+    transform="rotate(20 15.5 13)" 
+    fill="#F43F5E" 
+  />
+</svg>
