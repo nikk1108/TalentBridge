@@ -1,33 +1,41 @@
 const express = require('express');
 const router = express.Router();
 
-const {
-  registerUser,
-  loginUser,
-  getMe,
-  updateProfile,
-  saveJob,
-  unsaveJob,
-  getNotifications,
-  markNotificationsAsRead,
-  generateAssessmentQuestions,
-  evaluateAssessmentAnswers
-} = require('../controllers/authController');
+let authController;
+try {
+  authController = require('../controllers/authController');
+  console.log("✅ authController loaded successfully");
+} catch (err) {
+  console.error("❌ authController failed to load:", err.message);
+  authController = {};
+}
 
 const { protect } = require('../middleware/authMiddleware');
 
-router.post('/register', registerUser);
-router.post('/login', loginUser);
-router.get('/me', protect, getMe);
-router.put('/profile', protect, updateProfile);
+// Safe fallback handlers (prevents 404 silent failure)
+const safeHandler = (fnName) => {
+  return (req, res) => {
+    if (!authController[fnName]) {
+      return res.status(500).json({
+        message: `${fnName} not available in controller`
+      });
+    }
+    return authController[fnName](req, res);
+  };
+};
 
-router.post('/save-job/:jobId', protect, saveJob);
-router.delete('/save-job/:jobId', protect, unsaveJob);
+router.post('/register', safeHandler('registerUser'));
+router.post('/login', safeHandler('loginUser'));
+router.get('/me', protect, safeHandler('getMe'));
+router.put('/profile', protect, safeHandler('updateProfile'));
 
-router.get('/notifications', protect, getNotifications);
-router.put('/notifications/read', protect, markNotificationsAsRead);
+router.post('/save-job/:jobId', protect, safeHandler('saveJob'));
+router.delete('/save-job/:jobId', protect, safeHandler('unsaveJob'));
 
-router.post('/skills/assess/questions', protect, generateAssessmentQuestions);
-router.post('/skills/assess/evaluate', protect, evaluateAssessmentAnswers);
+router.get('/notifications', protect, safeHandler('getNotifications'));
+router.put('/notifications/read', protect, safeHandler('markNotificationsAsRead'));
+
+router.post('/skills/assess/questions', protect, safeHandler('generateAssessmentQuestions'));
+router.post('/skills/assess/evaluate', protect, safeHandler('evaluateAssessmentAnswers'));
 
 module.exports = router;
