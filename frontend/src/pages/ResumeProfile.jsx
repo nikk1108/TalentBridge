@@ -16,7 +16,7 @@ import {
   FileText,
   Sparkles
 } from 'lucide-react';
-import api from '../services/api';
+import api, { API_URL } from '../services/api';
 
 const ResumeProfile = () => {
   const [profile, setProfile] = useState({
@@ -97,7 +97,7 @@ const ResumeProfile = () => {
 
   const fetchProfile = async () => {
     try {
-      const me = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json());
+      const me = await fetch(`${API_URL}/api/auth/me`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json());
       if (me.profile) {
         setProfile({
           photo: me.profile.photo || '',

@@ -17,7 +17,7 @@ import {
   Link2,
   Award
 } from 'lucide-react';
-import api from '../services/api';
+import api, { API_URL } from '../services/api';
 
 const JobDetails = () => {
   const { id } = useParams();
@@ -70,7 +70,7 @@ const JobDetails = () => {
         // Fetch saved status and application status
         const currentUserData = await api.getNotifications(); // notifications query returns user profile details or we can use /me
         // Let's retrieve user profile details using GET /me
-        const me = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json());
+        const me = await fetch(`${API_URL}/api/auth/me`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json());
         
         const savedIds = me.savedJobs?.map(j => String(j._id || j)) || [];
         setIsSaved(savedIds.includes(String(id)));

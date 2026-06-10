@@ -1,4 +1,4 @@
-const API_URL = ''; // Relative path because of Vite proxy
+export const API_URL = import.meta.env.VITE_API_URL;// Configured via VITE_API_URL environment variable in production
 
 const getHeaders = () => {
   const token = localStorage.getItem('token');

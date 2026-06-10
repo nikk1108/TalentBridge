@@ -14,7 +14,7 @@ import {
   Timer,
   XCircle
 } from 'lucide-react';
-import api from '../services/api';
+import api, { API_URL } from '../services/api';
 
 const SkillAssessment = () => {
   const [userProfile, setUserProfile] = useState(null);
@@ -32,7 +32,7 @@ const SkillAssessment = () => {
 
   const loadData = async () => {
     try {
-      const me = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json());
+      const me = await fetch(`${API_URL}/api/auth/me`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json());
       setUserProfile(me);
       
       const activeJobs = await api.getJobs();

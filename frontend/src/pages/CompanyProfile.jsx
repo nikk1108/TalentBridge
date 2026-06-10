@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Building2, Globe, FileText, CheckCircle2, Save } from 'lucide-react';
-import api from '../services/api';
+import api, { API_URL } from '../services/api';
 
 const CompanyProfile = () => {
   const [company, setCompany] = useState({
@@ -19,7 +19,7 @@ const CompanyProfile = () => {
 
   const fetchCompanyDetails = async () => {
     try {
-      const me = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json());
+      const me = await fetch(`${API_URL}/api/auth/me`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json());
       if (me.company) {
         setCompany({
           name: me.company.name || '',
