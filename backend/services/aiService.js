@@ -83,9 +83,9 @@ const jdTemplates = {
 
 const fs = require('fs');
 const path = require('path');
-const zlib = require('zlib');
+const { PDFParse } = require('pdf-parse');
 
-function extractTextFromFile(filePath) {
+async function extractTextFromFile(filePath) {
   try {
     let resolvedPath = '';
     const pathsToTry = [
@@ -109,102 +109,19 @@ function extractTextFromFile(filePath) {
     }
 
     const buffer = fs.readFileSync(resolvedPath);
-    const contentStr = buffer.toString('utf8');
-
-    // Check if it's a PDF
-    if (contentStr.startsWith('%PDF')) {
-      return extractTextFromPdfBuffer(buffer);
+    
+    // Check if it is a PDF
+    if (buffer.toString('utf8', 0, 4) === '%PDF') {
+      const parser = new PDFParse({ data: buffer });
+      const data = await parser.getText({ parseHyperlinks: true });
+      return data.text || '';
     } else {
-      // Plain text or other format
-      return contentStr;
+      return buffer.toString('utf8');
     }
   } catch (error) {
-    console.error('Error reading file:', error);
+    console.error('Error reading/parsing file:', error);
     return '';
   }
-}
-
-function extractTextFromPdfBuffer(buffer) {
-  const chunks = [];
-  let pos = 0;
-
-  while (pos < buffer.length) {
-    let streamStart = buffer.indexOf('stream', pos);
-    if (streamStart === -1) break;
-
-    // Verify it is a valid stream keyword preceded by newline or '>'
-    const prevChar = buffer[streamStart - 1];
-    if (prevChar !== 10 && prevChar !== 13 && prevChar !== 62) {
-      pos = streamStart + 6;
-      continue;
-    }
-
-    let dataStart = streamStart + 6;
-    if (buffer[dataStart] === 13 && buffer[dataStart + 1] === 10) { // \r\n
-      dataStart += 2;
-    } else if (buffer[dataStart] === 10) { // \n
-      dataStart += 1;
-    }
-
-    const streamEnd = buffer.indexOf('endstream', dataStart);
-    if (streamEnd === -1) break;
-
-    let streamData = buffer.subarray(dataStart, streamEnd);
-    if (streamData[streamData.length - 1] === 10) {
-      streamData = streamData.subarray(0, streamData.length - 1);
-    }
-    if (streamData[streamData.length - 1] === 13) {
-      streamData = streamData.subarray(0, streamData.length - 1);
-    }
-
-    let decompressed = null;
-
-    if (streamData.length > 2 && streamData[0] === 0x78 && (streamData[1] === 0x9c || streamData[1] === 0x01 || streamData[1] === 0x5e || streamData[1] === 0xda)) {
-      try {
-        decompressed = zlib.inflateSync(streamData);
-      } catch (err) {
-        try {
-          decompressed = zlib.inflateRawSync(streamData);
-        } catch (err2) {
-          // ignore stream
-        }
-      }
-    } else {
-      decompressed = streamData;
-    }
-
-    if (decompressed) {
-      const textStr = decompressed.toString('binary');
-      
-      // Match parentheses strings e.g. (Hello World)
-      const regex = /\(([^)]+)\)/g;
-      let match;
-      while ((match = regex.exec(textStr)) !== null) {
-        const val = match[1].replace(/\\([0-7]{3})/g, (m, oct) => String.fromCharCode(parseInt(oct, 8)))
-                           .replace(/\\(.)/g, '$1');
-        chunks.push(val);
-      }
-
-      // Match hex text e.g. <416C6578>
-      const hexRegex = /<([0-9a-fA-F]+)>/g;
-      let hexMatch;
-      while ((hexMatch = hexRegex.exec(textStr)) !== null) {
-        const hexVal = hexMatch[1];
-        if (hexVal.length % 2 === 0) {
-          try {
-            const str = Buffer.from(hexVal, 'hex').toString('utf8');
-            if (/^[a-zA-Z0-9\s.,@()\-+]{2,}$/.test(str)) {
-              chunks.push(str);
-            }
-          } catch (e) {}
-        }
-      }
-    }
-
-    pos = streamEnd + 9;
-  }
-
-  return chunks.join(' ');
 }
 
 const aiService = {
@@ -449,7 +366,7 @@ const aiService = {
       certifications: []
     };
 
-    const text = extractTextFromFile(filePath);
+    const text = await extractTextFromFile(filePath);
 
     // Log raw text
     console.log('=== RAW EXTRACTED RESUME TEXT ===');
