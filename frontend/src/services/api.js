@@ -1,4 +1,6 @@
-export const API_URL = 'https://talentbridge-ev8b.onrender.com';// Configured via VITE_API_URL environment variable in production
+export const API_URL = import.meta.env.DEV 
+  ? 'http://localhost:5000' 
+  : (import.meta.env.VITE_API_URL || 'https://talentbridge-ev8b.onrender.com');
 
 const getHeaders = () => {
   const token = localStorage.getItem('token');
