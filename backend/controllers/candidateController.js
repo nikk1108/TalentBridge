@@ -278,7 +278,7 @@ const addComment = async (req, res) => {
 
     const comment = await dbService.addComment(req.params.id, text, rating, userId);
     
-    // Notify candidate
+   
     const candId = candidate.candidateId?._id || candidate.candidateId;
     if (candId) {
       const jobTitle = candidate.job?.title || 'Job';

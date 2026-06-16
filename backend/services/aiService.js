@@ -110,7 +110,6 @@ async function extractTextFromFile(filePath) {
 
     const buffer = fs.readFileSync(resolvedPath);
     
-    // Check if it is a PDF
     if (buffer.toString('utf8', 0, 4) === '%PDF') {
       const parser = new PDFParse({ data: buffer });
       const data = await parser.getText({ parseHyperlinks: true });
