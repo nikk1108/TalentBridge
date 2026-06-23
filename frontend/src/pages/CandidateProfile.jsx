@@ -5,10 +5,19 @@ import {
   Edit, Calendar, Clock, Save, History, Sparkles, 
   Linkedin, Github, Globe, Briefcase, GraduationCap, Award, Star
 } from 'lucide-react';
-import api from '../services/api';
+import api, { API_URL } from '../services/api';
 
 const CandidateProfile = () => {
   const { id } = useParams();
+
+  const getResumeUrl = (path) => {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+      return path;
+    }
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${API_URL}${cleanPath}`;
+  };
 
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -301,7 +310,7 @@ const CandidateProfile = () => {
               <span className="text-[9px] font-mono text-[#666] uppercase">Resume / Document Link</span>
               {candidate.resumePath ? (
                 <a
-                  href={candidate.resumePath}
+                  href={getResumeUrl(candidate.resumePath)}
                   download
                   target="_blank"
                   rel="noopener noreferrer"
@@ -312,7 +321,7 @@ const CandidateProfile = () => {
                 </a>
               ) : candidate.resumeUrl ? (
                 <a
-                  href={candidate.resumeUrl}
+                  href={getResumeUrl(candidate.resumeUrl)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-1 flex items-center gap-1.5 px-3 py-1.5 bg-[#222] border border-[#2e2e2e] hover:bg-[#2a2a2a] text-xs font-medium rounded text-amber-500 hover:text-amber-400 transition-colors w-max"
@@ -506,14 +515,14 @@ const CandidateProfile = () => {
           <div className="text-xs text-white font-medium border-b border-[#2e2e2e]/50 pb-2 flex justify-between items-center">
             <span className="flex items-center gap-1.5"><FileText size={13} className="text-amber-500" />Resume Preview</span>
             {resumeLink && (
-              <a href={resumeLink} target="_blank" rel="noreferrer" className="text-[10px] text-amber-500 hover:underline">
+              <a href={getResumeUrl(resumeLink)} target="_blank" rel="noreferrer" className="text-[10px] text-amber-500 hover:underline">
                 New Tab
               </a>
             )}
           </div>
           {resumeLink ? (
             <iframe
-              src={resumeLink}
+              src={getResumeUrl(resumeLink)}
               title="Resume Preview"
               className="w-full h-60 border border-[#2e2e2e] rounded bg-[#121212]"
             />
