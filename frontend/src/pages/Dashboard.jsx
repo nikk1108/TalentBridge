@@ -193,7 +193,13 @@ const Dashboard = () => {
                   {candidateApps.slice(0, 3).map((app) => (
                     <div key={app._id} className="p-3 bg-[#141414] border border-[#2a2a2a] rounded flex flex-col gap-2 hover:bg-[#181818] transition-colors">
                       <div className="flex justify-between items-baseline">
-                        <span className="font-bold text-white text-xs">{app.job?.title}</span>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-white text-xs">{app.job?.title}</span>
+                          <span className="text-[9px] text-[#888] font-mono mt-0.5">
+                            {app.job?.companyName || 'Company Not Specified'}
+                            {app.job?.department && <span className="text-[#555] font-sans"> – {app.job?.department}</span>}
+                          </span>
+                        </div>
                         <span className={`px-2 py-0.5 rounded text-[9px] font-mono ${getStatusColor(app.status)}`}>
                           {app.status}
                         </span>
@@ -246,7 +252,10 @@ const Dashboard = () => {
                     >
                       <div>
                         <h4 className="font-bold text-white group-hover:text-[#10B981] transition-colors">{job.title}</h4>
-                        <p className="text-[10px] text-[#666] font-mono mt-0.5">{job.companyName} – {job.department}</p>
+                        <p className="text-[10px] text-[#666] font-mono mt-0.5">
+                          {job.companyName || 'Company Not Specified'}
+                          {job.department && <span className="font-sans text-[#555]"> – {job.department}</span>}
+                        </p>
                       </div>
                       <span className="px-2 py-0.5 bg-emerald-950/20 text-[#10B981] border border-emerald-500/20 font-mono text-[9px] rounded font-bold">
                         {job.score}% Match

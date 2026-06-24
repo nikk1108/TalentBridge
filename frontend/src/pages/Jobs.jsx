@@ -16,8 +16,8 @@ const Jobs = () => {
   // Filters state
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
-  const [department, setDepartment] = useState('');
-  const [departments, setDepartments] = useState([]);
+  const [companyName, setCompanyName] = useState('');
+  const [companies, setCompanies] = useState([]);
 
   // Application Modal state
   const [activeApplyJob, setActiveApplyJob] = useState(null);
@@ -33,13 +33,13 @@ const Jobs = () => {
       const res = await api.getJobs({
         search,
         status,
-        department
+        companyName
       });
       setJobs(res);
 
-      if (!department && res.length > 0) {
-        const depts = [...new Set(res.map(j => j.department))].filter(Boolean);
-        setDepartments(depts);
+      if (!companyName && res.length > 0) {
+        const comps = [...new Set(res.map(j => j.companyName || 'Company Not Specified'))].filter(Boolean);
+        setCompanies(comps);
       }
     } catch (err) {
       setError(err.message || 'Failed to load jobs list');
@@ -63,7 +63,7 @@ const Jobs = () => {
   useEffect(() => {
     fetchJobs();
     fetchAppliedJobs();
-  }, [search, status, department]);
+  }, [search, status, companyName]);
 
   const handleDelete = async (id) => {
     const confirm = window.confirm('Are you sure you want to delete this job opening? All candidate applications linked to this job will be deleted permanently.');
@@ -153,7 +153,7 @@ const Jobs = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by title, department..."
+              placeholder="Search by title, company, department..."
               className="w-full bg-[#121212] border border-[#2e2e2e] pl-8 pr-3 py-1.5 rounded text-xs text-white focus:outline-none focus:border-amber-500/60 placeholder-[#555]"
             />
           </div>
@@ -172,14 +172,14 @@ const Jobs = () => {
           )}
 
           <select
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
             className="bg-[#121212] border border-[#2e2e2e] text-xs text-[#a1a1aa] rounded px-3 py-1.5 focus:outline-none focus:border-amber-500/60"
           >
-            <option value="">All Departments</option>
-            {departments.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
+            <option value="">All Companies</option>
+            {companies.map((comp) => (
+              <option key={comp} value={comp}>
+                {comp}
               </option>
             ))}
           </select>
@@ -206,7 +206,7 @@ const Jobs = () => {
               <thead>
                 <tr className="border-b border-[#2e2e2e] bg-[#161616] text-[10px] text-[#888] uppercase tracking-wider font-mono">
                   <th className="px-4 py-2 font-medium">Job Title</th>
-                  <th className="px-4 py-2 font-medium">Department</th>
+                   <th className="px-4 py-2 font-medium">Company</th>
                   <th className="px-4 py-2 font-medium">Location</th>
                   <th className="px-4 py-2 font-medium">Workplace</th>
                   <th className="px-4 py-2 font-medium">Salary</th>
@@ -228,13 +228,20 @@ const Jobs = () => {
                             {job.title}
                           </Link>
                           <div className="flex gap-2 items-center text-[9px] text-[#555] font-mono mt-0.5">
+                            <span className="text-[#a1a1aa] font-sans font-medium">{job.companyName || 'Company Not Specified'}</span>
+                            <span>•</span>
                             {job.experienceLevel && <span>{job.experienceLevel}</span>}
                             <span>•</span>
                             <span>ID: {job._id}</span>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-2.5 text-[#a1a1aa]">{job.department}</td>
+                      <td className="px-4 py-2.5 text-[#a1a1aa]">
+                        <div className="flex flex-col">
+                          <span>{job.companyName || 'Company Not Specified'}</span>
+                          {job.department && <span className="text-[9px] text-[#555] mt-0.5">{job.department}</span>}
+                        </div>
+                      </td>
                       <td className="px-4 py-2.5 text-[#a1a1aa]">{job.location}</td>
                       <td className="px-4 py-2.5 text-[#a1a1aa]">{job.workplace}</td>
                       <td className="px-4 py-2.5 text-amber-500 font-mono font-medium">{job.salaryRange || 'Competitive'}</td>

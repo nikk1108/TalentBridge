@@ -125,30 +125,223 @@ async function extractTextFromFile(filePath) {
 
 const aiService = {
   /**
-   * Suggests a professional job description based on a job title
+   * Suggests a professional job description based on job context parameters
    */
-  async generateJobDescription(title) {
-    const cleanTitle = title.toLowerCase();
-    let template = jdTemplates.software; // Default fallback
-
-    if (cleanTitle.includes('front') || cleanTitle.includes('react') || cleanTitle.includes('ui')) {
-      template = jdTemplates.frontend;
-    } else if (cleanTitle.includes('back') || cleanTitle.includes('api') || cleanTitle.includes('node')) {
-      template = jdTemplates.backend;
-    } else if (cleanTitle.includes('product') || cleanTitle.includes('project') || cleanTitle.includes('manager')) {
-      template = jdTemplates.product;
-    } else if (cleanTitle.includes('design') || cleanTitle.includes('ux') || cleanTitle.includes('figma')) {
-      template = jdTemplates.designer;
+  async generateJobDescription(options = {}) {
+    // Backwards compatibility with passing string title
+    let title = typeof options === 'string' ? options : (options.title || '');
+    let companyName = options.companyName || 'Company Not Specified';
+    let department = options.department || '';
+    let skills = options.skills || [];
+    if (typeof skills === 'string') {
+      skills = skills.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    let experience = options.experience || '';
+    let employmentType = options.employmentType || 'Full-time';
+    let location = options.location || 'Remote';
+    let keywords = options.keywords || [];
+    if (typeof keywords === 'string') {
+      keywords = keywords.split(',').map(k => k.trim()).filter(Boolean);
     }
 
-    // Build standard job description text
-    const text = `### Role Overview\n${template.summary}\n\n### Key Responsibilities\n${template.responsibilities.map(r => `- ${r}`).join('\n')}\n\n### Requirements\n${template.requirements.map(req => `- ${req}`).join('\n')}`;
+    const cleanTitle = title.toLowerCase().trim();
+    const cleanSkills = skills.map(s => s.toLowerCase().trim());
+
+    // 1. Infer the role category dynamically
+    let category = 'general';
+    if (cleanTitle.includes('front') || cleanTitle.includes('ui') || cleanTitle.includes('ux') || cleanTitle.includes('design') || cleanSkills.includes('react') || cleanSkills.includes('figma') || cleanSkills.includes('tailwind')) {
+      category = 'frontend';
+    }
+    if (cleanTitle.includes('back') || cleanTitle.includes('node') || cleanTitle.includes('api') || cleanSkills.includes('express') || cleanSkills.includes('postgresql')) {
+      category = 'backend';
+    }
+    if (cleanTitle.includes('mern') || cleanTitle.includes('fullstack') || cleanTitle.includes('full-stack')) {
+      category = 'fullstack';
+    }
+    if (cleanTitle.includes('data') || cleanTitle.includes('analyst') || cleanTitle.includes('analytics') || cleanSkills.includes('tableau') || cleanSkills.includes('powerbi')) {
+      category = 'data';
+    }
+    if (cleanTitle.includes('devops') || cleanTitle.includes('cloud') || cleanTitle.includes('sre') || cleanSkills.includes('docker') || cleanSkills.includes('kubernetes') || cleanSkills.includes('aws') || cleanSkills.includes('ci/cd')) {
+      category = 'devops';
+    }
+    if (cleanTitle.includes('ai') || cleanTitle.includes('ml') || cleanTitle.includes('machine learning') || cleanTitle.includes('nlp') || cleanSkills.includes('pytorch') || cleanSkills.includes('llm') || cleanSkills.includes('rag') || cleanSkills.includes('tensorflow')) {
+      category = 'ai';
+    }
+
+    // 2. Build natural Role Overview
+    let overview = `At ${companyName}, we are seeking a dedicated and passionate ${title} to join our growing team${department ? ` inside the ${department}` : ''}. In this ${employmentType} position located in ${location}, you will play an active role in shaping our technical solutions and ensuring high quality standards. You will collaborate closely with other team members to design, develop, and deploy features that drive our business goals forward.`;
+    
+    if (experience) {
+      overview += ` Candidates with a ${experience} level of experience and a track record of building robust systems will find this a highly rewarding opportunity.`;
+    }
+
+    // 3. Build Key Responsibilities dynamically
+    let responsibilities = [];
+    
+    if (category === 'frontend') {
+      responsibilities.push(
+        "Design, build, and maintain responsive UI developments that deliver outstanding and accessible user experiences.",
+        "Collaborate on scalable frontend architecture and component hierarchies to maximize code reuse.",
+        "Optimize web performance, bundle sizes, rendering paths, and loading states across browser viewports."
+      );
+    } else if (category === 'backend') {
+      responsibilities.push(
+        "Design, construct, and support robust APIs and microservices for frontend consumption.",
+        "Build secure authentication protocols, authorization layers, and prevent common web security vulnerabilities.",
+        "Optimize database schemas, write efficient queries, and ensure server scalability and uptime."
+      );
+    } else if (category === 'fullstack') {
+      responsibilities.push(
+        "Develop and maintain end-to-end full-stack web applications, bridging the gap between frontend interfaces and backend systems.",
+        "Design robust database schemas and write clean, server-side logic to handle business operations.",
+        "Build reusable UI components and integrate complex frontend modules with core APIs."
+      );
+    } else if (category === 'data') {
+      responsibilities.push(
+        "Develop SQL models, extract datasets, and clean data pipelines to support business intelligence.",
+        "Create clear, interactive dashboard visualizations and reporting structures for cross-functional partners.",
+        "Perform deep dive statistical analysis to uncover business insights, growth trends, and operation metrics."
+      );
+    } else if (category === 'devops') {
+      responsibilities.push(
+        "Build and configure automated CI/CD deployment pipelines to ensure rapid, safe, and continuous application delivery.",
+        "Manage cloud environments, virtual private networks, load balancers, and container orchestration clusters.",
+        "Drive infrastructure-as-code automation and establish system monitoring, alerting, and logging systems."
+      );
+    } else if (category === 'ai') {
+      responsibilities.push(
+        "Design, train, and fine-tune machine learning models and large language model (LLM) workflows.",
+        "Implement Retrieval-Augmented Generation (RAG) pipelines to augment models with external search indexes.",
+        "Build and deploy scalable AI endpoints, managing GPU resource allocation and model inference latency."
+      );
+    } else {
+      responsibilities.push(
+        `Own the lifecycle of core ${title} platform features from initial concept through development and release.`,
+        "Collaborate with multi-disciplinary partners to prioritize specifications and align engineering efforts.",
+        "Write clean, readable, and highly maintainable code backed by thorough test suites."
+      );
+    }
+
+    // Weave skills into responsibilities
+    if (skills.length > 0) {
+      skills.forEach((skill, idx) => {
+        const phrasings = [
+          `Leverage ${skill} to build, test, and deploy key elements of our application architecture.`,
+          `Ensure high performance and quality code standards using ${skill} and related tools.`,
+          `Collaborate on the development of workflows and modules centered around ${skill}.`,
+          `Troubleshoot, debug, and optimize systems built with ${skill} to maintain system reliability.`
+        ];
+        responsibilities.push(phrasings[idx % phrasings.length]);
+      });
+    }
+
+    // Weave keywords into responsibilities
+    if (keywords.length > 0) {
+      keywords.forEach((kw, idx) => {
+        const phrasings = [
+          `Drive implementation of ${kw} protocols across team microservices.`,
+          `Participate in design reviews and architect solutions incorporating ${kw}.`,
+          `Analyze technical constraints and write specifications focusing on ${kw}.`,
+          `Mentor junior developers and establish guidelines for ${kw} development.`
+        ];
+        responsibilities.push(phrasings[idx % phrasings.length]);
+      });
+    }
+
+    // 4. Build Required Skills & Qualifications dynamically
+    let requirements = [];
+    if (experience) {
+      requirements.push(`Professional experience working as a ${title} (ideally at a ${experience} level).`);
+    } else {
+      requirements.push(`Proven professional experience in a ${title} or equivalent engineering capacity.`);
+    }
+
+    if (skills.length > 0) {
+      requirements.push(`Hands-on expertise and strong command of: ${skills.join(', ')}.`);
+    }
+
+    if (category === 'frontend') {
+      requirements.push(
+        "Solid understanding of HTML5, CSS3, DOM manipulation, and responsive web design rules.",
+        "Experience with modern frontend state management, build systems, and bundling tools."
+      );
+    } else if (category === 'backend') {
+      requirements.push(
+        "Strong understanding of server-side frameworks, database management, and asynchronous flow controls.",
+        "Experience designing and implementing security protocols, secure hashing, and cookie management."
+      );
+    } else if (category === 'fullstack') {
+      requirements.push(
+        "Familiarity with both frontend UI frameworks and server-side backend architectures.",
+        "Deep knowledge of relational/non-relational database management systems and API security rules."
+      );
+    } else if (category === 'data') {
+      requirements.push(
+        "Strong command of analytics, statistical scripting, data extraction methodologies, and modeling.",
+        "Experience with reporting software and translating data patterns to stakeholders."
+      );
+    } else if (category === 'devops') {
+      requirements.push(
+        "Familiarity with containerization tools, cloud providers, infrastructure scripting, and monitoring tools.",
+        "Solid systems operations administration knowledge and shell scripting capabilities."
+      );
+    } else if (category === 'ai') {
+      requirements.push(
+        "Familiarity with deep learning frameworks, neural network training, data prep, and model evaluation metrics.",
+        "Strong algorithms background and experience deploying heavy models to hardware servers."
+      );
+    }
+
+    requirements.push(
+      "Excellent logical reasoning, debug capability, and ability to break down complex architectural issues.",
+      "Clear communication, verbal and written, with the ability to participate in agile sprint planning."
+    );
+
+    // 5. Build Preferred Qualifications dynamically
+    let preferred = [];
+    if (skills.length > 0) {
+      preferred.push(`Experience teaching or mentoring others in the adoption of ${skills[0]} and related ecosystems.`);
+    }
+    if (keywords.length > 0) {
+      preferred.push(`Active participation in open-source projects or conferences focusing on ${keywords[0]}.`);
+    }
+
+    preferred.push(
+      "Experience with automated container orchestration tools (like Kubernetes) and cloud deployments.",
+      "Understanding of continuous integration/continuous deployment (CI/CD) pipelines and release processes.",
+      "A passion for learning new technologies and a proactive approach to solving architectural problems."
+    );
+
+    // 6. Benefits & Perks
+    let benefits = [
+      "Competitive compensation package with performance-based bonuses.",
+      "Comprehensive medical, dental, and vision coverage for employees and families.",
+      "Flexible schedule options and support for remote working arrangements.",
+      "A dedicated budget for training, certifications, books, and courses.",
+      "Generous paid time off (PTO), paid holidays, and family leave plans."
+    ];
+
+    // Format output description string
+    const text = `### Role Overview
+${overview}
+
+### Key Responsibilities
+${responsibilities.map(r => `- ${r}`).join('\n')}
+
+### Required Skills & Qualifications
+${requirements.map(req => `- ${req}`).join('\n')}
+
+### Preferred Qualifications
+${preferred.map(pref => `- ${pref}`).join('\n')}
+
+### Benefits & Perks
+${benefits.map(b => `- ${b}`).join('\n')}`;
 
     return {
       title,
       description: text,
-      skills: template.skills,
-      requirements: template.requirements
+      skills,
+      requirements
     };
   },
 

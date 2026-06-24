@@ -66,12 +66,19 @@ const dbService = {
       if (filters.status) {
         jobs = jobs.filter(j => j.status === filters.status);
       }
+      if (filters.companyName) {
+        jobs = jobs.filter(j => (j.companyName || 'Company Not Specified').toLowerCase() === filters.companyName.toLowerCase());
+      }
       if (filters.department) {
-        jobs = jobs.filter(j => j.department.toLowerCase() === filters.department.toLowerCase());
+        jobs = jobs.filter(j => (j.department || '').toLowerCase() === filters.department.toLowerCase());
       }
       if (filters.search) {
         const s = filters.search.toLowerCase();
-        jobs = jobs.filter(j => j.title.toLowerCase().includes(s) || j.department.toLowerCase().includes(s));
+        jobs = jobs.filter(j => 
+          j.title.toLowerCase().includes(s) || 
+          (j.companyName || 'Company Not Specified').toLowerCase().includes(s) ||
+          (j.department || '').toLowerCase().includes(s)
+        );
       }
       
       return jobs.map(j => {
@@ -83,10 +90,12 @@ const dbService = {
     const mongooseQuery = {};
     if (filters.createdBy) mongooseQuery.createdBy = filters.createdBy;
     if (filters.status) mongooseQuery.status = filters.status;
+    if (filters.companyName) mongooseQuery.companyName = filters.companyName;
     if (filters.department) mongooseQuery.department = filters.department;
     if (filters.search) {
       mongooseQuery.$or = [
         { title: { $regex: filters.search, $options: 'i' } },
+        { companyName: { $regex: filters.search, $options: 'i' } },
         { department: { $regex: filters.search, $options: 'i' } }
       ];
     }
@@ -134,6 +143,7 @@ const dbService = {
         companyLogoUrl: jobData.companyLogoUrl || '',
         salaryRange: jobData.salaryRange || '',
         experienceLevel: jobData.experienceLevel || 'Mid-Level',
+        keywords: jobData.keywords || [],
         createdBy: jobData.createdBy,
         createdAt: new Date()
       };
@@ -202,7 +212,7 @@ const dbService = {
         const job = store.jobs.find(j => j._id === c.jobId);
         return {
           ...c,
-          job: job ? { _id: job._id, title: job.title, department: job.department, createdBy: job.createdBy } : null
+          job: job ? { _id: job._id, title: job.title, department: job.department, companyName: job.companyName || 'Company Not Specified', createdBy: job.createdBy } : null
         };
       });
     }
@@ -227,7 +237,7 @@ const dbService = {
       ];
     }
 
-    const candidates = await Candidate.find(mongooseQuery).populate('jobId', 'title department createdBy').sort({ createdAt: -1 });
+    const candidates = await Candidate.find(mongooseQuery).populate('jobId', 'title department companyName createdBy').sort({ createdAt: -1 });
     return candidates.map(c => {
       const obj = c.toObject();
       obj.job = obj.jobId;
@@ -253,7 +263,7 @@ const dbService = {
         ...candidate,
         candidateId: candUser ? { _id: candUser._id, name: candUser.name, email: candUser.email, profile: candUser.profile } : null,
         comments: resolvedComments,
-        job: job ? { _id: job._id, title: job.title, department: job.department, skills: job.skills, requirements: job.requirements, createdBy: job.createdBy } : null
+        job: job ? { _id: job._id, title: job.title, department: job.department, companyName: job.companyName || 'Company Not Specified', skills: job.skills, requirements: job.requirements, createdBy: job.createdBy } : null
       };
     }
     const candidate = await Candidate.findById(id)
@@ -310,7 +320,7 @@ const dbService = {
       const job = store.jobs.find(j => j._id === newCandidate.jobId);
       return {
         ...newCandidate,
-        job: job ? { _id: job._id, title: job.title, department: job.department, createdBy: job.createdBy } : null
+        job: job ? { _id: job._id, title: job.title, department: job.department, companyName: job.companyName || 'Company Not Specified', createdBy: job.createdBy } : null
       };
     }
     
@@ -322,7 +332,7 @@ const dbService = {
       comments: []
     });
     await candidate.save();
-    const result = await Candidate.findById(candidate._id).populate('jobId', 'title department createdBy');
+    const result = await Candidate.findById(candidate._id).populate('jobId', 'title department companyName createdBy');
     if (!result) return null;
     const obj = result.toObject();
     obj.job = obj.jobId;
@@ -357,7 +367,7 @@ const dbService = {
       const job = store.jobs.find(j => j._id === store.candidates[index].jobId);
       return {
         ...store.candidates[index],
-        job: job ? { _id: job._id, title: job.title, department: job.department, createdBy: job.createdBy } : null
+        job: job ? { _id: job._id, title: job.title, department: job.department, companyName: job.companyName || 'Company Not Specified', createdBy: job.createdBy } : null
       };
     }
 
@@ -382,7 +392,7 @@ const dbService = {
     });
 
     await candidate.save();
-    const result = await Candidate.findById(id).populate('jobId', 'title department createdBy');
+    const result = await Candidate.findById(id).populate('jobId', 'title department companyName createdBy');
     if (!result) return null;
     const obj = result.toObject();
     obj.job = obj.jobId;

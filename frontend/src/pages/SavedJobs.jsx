@@ -81,7 +81,10 @@ const SavedJobs = () => {
                     <h3 className="text-sm font-bold text-white group-hover:text-amber-500 transition-colors">
                       {job.title}
                     </h3>
-                    <p className="text-[11px] text-[#888] font-mono mt-0.5">{job.companyName || 'Acme Corp'}</p>
+                    <p className="text-[11px] text-[#a1a1aa] font-medium mt-0.5">
+                      {job.companyName || 'Company Not Specified'}
+                      {job.department && <span className="text-[#666] font-normal font-sans"> – {job.department}</span>}
+                    </p>
                   </div>
                   <button
                     onClick={(e) => handleUnsave(e, job._id)}
@@ -97,10 +100,12 @@ const SavedJobs = () => {
                     <MapPin size={11} className="text-[#555]" />
                     <span>{job.location} ({job.workplace})</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#a1a1aa]">
-                    <Building2 size={11} className="text-[#555]" />
-                    <span>{job.department}</span>
-                  </div>
+                  {job.department && (
+                    <div className="flex items-center gap-2 text-[11px] text-[#a1a1aa]">
+                      <Building2 size={11} className="text-[#555]" />
+                      <span>{job.department}</span>
+                    </div>
+                  )}
                   {job.salaryRange && (
                     <div className="flex items-center gap-2 text-[11px] text-[#a1a1aa]">
                       <DollarSign size={11} className="text-[#555]" />

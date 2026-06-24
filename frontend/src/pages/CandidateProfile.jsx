@@ -259,8 +259,9 @@ const CandidateProfile = () => {
               <p className="text-xs font-semibold text-white mt-1">
                 {candidate.job?.title || 'Unknown Role'}
               </p>
-              <p className="text-[10px] text-[#888]">
-                Department: {candidate.job?.department || 'N/A'}
+              <p className="text-[10px] text-[#a1a1aa] font-medium mt-0.5">
+                {candidate.job?.companyName || 'Company Not Specified'}
+                {candidate.job?.department && <span className="text-[#666] font-normal"> – {candidate.job?.department}</span>}
               </p>
             </div>
 

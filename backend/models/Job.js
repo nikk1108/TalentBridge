@@ -8,8 +8,9 @@ const JobSchema = new mongoose.Schema({
   },
   department: {
     type: String,
-    required: true,
-    trim: true
+    required: false,
+    trim: true,
+    default: ''
   },
   location: {
     type: String,
@@ -50,7 +51,8 @@ const JobSchema = new mongoose.Schema({
   companyName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    default: 'Company Not Specified'
   },
   companyWebsite: {
     type: String,
@@ -71,6 +73,10 @@ const JobSchema = new mongoose.Schema({
     type: String,
     trim: true,
     default: 'Mid-Level'
+  },
+  keywords: {
+    type: [String],
+    default: []
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,

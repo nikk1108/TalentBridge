@@ -129,11 +129,11 @@ const api = {
   },
 
   // AI JD Suggestions API
-  async suggestJD(title) {
+  async suggestJD(params = {}) {
     const res = await fetch(`${API_URL}/api/jobs/suggest-jd`, {
       method: 'POST',
       headers: getHeaders(),
-      body: JSON.stringify({ title })
+      body: JSON.stringify(params)
     });
     return await handleResponse(res);
   },

@@ -202,7 +202,10 @@ const Candidates = () => {
                       {cand.job ? (
                         <div className="flex flex-col">
                           <span>{cand.job.title}</span>
-                          <span className="text-[9px] text-[#555]">{cand.job.department}</span>
+                          <span className="text-[9px] text-[#666] font-medium mt-0.5">
+                            {cand.job.companyName || 'Company Not Specified'}
+                            {cand.job.department && <span className="text-[#555] font-normal"> – {cand.job.department}</span>}
+                          </span>
                         </div>
                       ) : (
                         <span className="text-red-400 text-[10px]">Unassigned Job</span>

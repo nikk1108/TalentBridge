@@ -9,6 +9,7 @@ const CreateJob = () => {
   const navigate = useNavigate();
 
   const [title, setTitle] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [department, setDepartment] = useState('');
   const [location, setLocation] = useState('Remote');
   const [type, setType] = useState('Full-time');
@@ -17,6 +18,7 @@ const CreateJob = () => {
   const [description, setDescription] = useState('');
   const [requirements, setRequirements] = useState('');
   const [skills, setSkills] = useState('');
+  const [keywords, setKeywords] = useState('');
   const [salaryRange, setSalaryRange] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('Mid-Level');
 
@@ -32,7 +34,8 @@ const CreateJob = () => {
         try {
           const job = await api.getJob(id);
           setTitle(job.title);
-          setDepartment(job.department);
+          setCompanyName(job.companyName || '');
+          setDepartment(job.department || '');
           setLocation(job.location);
           setType(job.type);
           setWorkplace(job.workplace);
@@ -40,6 +43,7 @@ const CreateJob = () => {
           setDescription(job.description);
           setRequirements(job.requirements?.join('\n') || '');
           setSkills(job.skills?.join(', ') || '');
+          setKeywords(job.keywords?.join(', ') || '');
           setSalaryRange(job.salaryRange || '');
           setExperienceLevel(job.experienceLevel || 'Mid-Level');
         } catch (err) {
@@ -61,7 +65,16 @@ const CreateJob = () => {
     setError('');
     setAiLoading(true);
     try {
-      const data = await api.suggestJD(title);
+      const data = await api.suggestJD({
+        title,
+        companyName,
+        department,
+        skills,
+        experience: experienceLevel,
+        employmentType: type,
+        location,
+        keywords
+      });
       setDescription(data.description);
       
       if (data.requirements && data.requirements.length > 0) {
@@ -81,8 +94,8 @@ const CreateJob = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !department || !description) {
-      return setError('Title, Department, and Description are required.');
+    if (!title || !companyName || !description) {
+      return setError('Title, Company Name, and Description are required.');
     }
 
     setLoading(true);
@@ -99,8 +112,14 @@ const CreateJob = () => {
       .map(s => s.trim())
       .filter(Boolean);
 
+    const keywordList = keywords
+      .split(',')
+      .map(k => k.trim())
+      .filter(Boolean);
+
     const jobData = {
       title,
+      companyName,
       department,
       location,
       type,
@@ -109,6 +128,7 @@ const CreateJob = () => {
       description,
       requirements: reqList,
       skills: skillList,
+      keywords: keywordList,
       salaryRange,
       experienceLevel
     };
@@ -160,8 +180,8 @@ const CreateJob = () => {
       <form onSubmit={handleSubmit} className="bg-[#1a1a1a] border border-[#2e2e2e] rounded p-5 flex flex-col gap-4">
         
         {/* Row 1: Title & Suggest Button */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-2 flex flex-col gap-1.5">
+        <div className="grid grid-cols-1 gap-4">
+          <div className="flex flex-col gap-1.5">
             <label className="text-[10px] text-[#a1a1aa] uppercase font-mono tracking-wider">Job Title</label>
             <div className="flex gap-2">
               <input
@@ -183,16 +203,30 @@ const CreateJob = () => {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Row 1.5: Company Name & Department */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] text-[#a1a1aa] uppercase font-mono tracking-wider">Company Name</label>
+            <input
+              type="text"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="e.g. Acme Technologies"
+              className="bg-[#121212] border border-[#2e2e2e] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60 placeholder-[#444]"
+              required
+            />
+          </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] text-[#a1a1aa] uppercase font-mono tracking-wider">Department</label>
+            <label className="text-[10px] text-[#a1a1aa] uppercase font-mono tracking-wider">Department (Optional)</label>
             <input
               type="text"
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
-              placeholder="e.g. Engineering, Design"
+              placeholder="e.g. Engineering Department"
               className="bg-[#121212] border border-[#2e2e2e] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60 placeholder-[#444]"
-              required
             />
           </div>
         </div>
@@ -294,21 +328,37 @@ const CreateJob = () => {
           />
         </div>
 
-        {/* Row 3: Skills list and Requirements */}
+        {/* Row 3: Skills list, Keywords, and Requirements */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           
-          {/* Key Skills */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] text-[#a1a1aa] uppercase font-mono tracking-wider">
-              Core Skills <span className="text-[#666]">(comma-separated)</span>
-            </label>
-            <input
-              type="text"
-              value={skills}
-              onChange={(e) => setSkills(e.target.value)}
-              placeholder="e.g. JavaScript, Go, AWS, Docker"
-              className="bg-[#121212] border border-[#2e2e2e] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60 placeholder-[#444]"
-            />
+          <div className="flex flex-col gap-4">
+            {/* Key Skills */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] text-[#a1a1aa] uppercase font-mono tracking-wider">
+                Core Skills <span className="text-[#666]">(comma-separated)</span>
+              </label>
+              <input
+                type="text"
+                value={skills}
+                onChange={(e) => setSkills(e.target.value)}
+                placeholder="e.g. JavaScript, Go, AWS, Docker"
+                className="bg-[#121212] border border-[#2e2e2e] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60 placeholder-[#444]"
+              />
+            </div>
+
+            {/* Additional Keywords */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] text-[#a1a1aa] uppercase font-mono tracking-wider">
+                Additional Keywords <span className="text-[#666]">(comma-separated)</span>
+              </label>
+              <input
+                type="text"
+                value={keywords}
+                onChange={(e) => setKeywords(e.target.value)}
+                placeholder="e.g. Responsive UI, Machine Learning, CI/CD"
+                className="bg-[#121212] border border-[#2e2e2e] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60 placeholder-[#444]"
+              />
+            </div>
           </div>
 
           {/* Job Requirements */}
@@ -319,9 +369,9 @@ const CreateJob = () => {
             <textarea
               value={requirements}
               onChange={(e) => setRequirements(e.target.value)}
-              rows={3}
+              rows={5}
               placeholder="e.g. 3+ years experience with React&#10;BS in Computer Science"
-              className="w-full bg-[#121212] border border-[#2e2e2e] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60 placeholder-[#444] font-mono"
+              className="w-full bg-[#121212] border border-[#2e2e2e] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/60 placeholder-[#444] font-mono h-full"
             />
           </div>
         </div>

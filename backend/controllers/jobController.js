@@ -10,9 +10,9 @@ const getJobs = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
     const userRole = req.user.role;
-    const { status, department, search } = req.query;
+    const { status, companyName, department, search } = req.query;
 
-    let searchFilters = { status, department, search };
+    let searchFilters = { status, companyName, department, search };
 
     if (userRole === 'recruiter') {
       // Recruiters only manage their own jobs
@@ -93,8 +93,8 @@ const createJob = async (req, res) => {
       experienceLevel
     } = req.body;
 
-    if (!title || !department || !description) {
-      return res.status(400).json({ message: 'Please provide Title, Department, and Description' });
+    if (!title || !companyName || !description) {
+      return res.status(400).json({ message: 'Please provide Title, Company Name, and Description' });
     }
 
     const recruiter = await dbService.findUserById(userId);
@@ -196,12 +196,21 @@ const suggestDescription = async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const { title } = req.body;
+    const { title, companyName, department, skills, experience, employmentType, location, keywords } = req.body;
     if (!title) {
       return res.status(400).json({ message: 'Job title is required' });
     }
 
-    const suggestion = await aiService.generateJobDescription(title);
+    const suggestion = await aiService.generateJobDescription({
+      title,
+      companyName,
+      department,
+      skills,
+      experience,
+      employmentType,
+      location,
+      keywords
+    });
     res.status(200).json(suggestion);
   } catch (error) {
     res.status(500).json({ message: error.message });

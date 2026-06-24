@@ -194,7 +194,10 @@ const JobDetails = () => {
           </Link>
           <div>
             <h1 className="text-sm font-semibold text-white">{job.title}</h1>
-            <p className="text-[11px] text-[#666]">Job Specification & Opening Dossier</p>
+            <p className="text-[11px] text-[#a1a1aa] font-medium mt-0.5">
+              {job.companyName || 'Company Not Specified'}
+              {job.department && <span className="text-[#666] font-normal"> – {job.department}</span>}
+            </p>
           </div>
         </div>
         
@@ -279,9 +282,15 @@ const JobDetails = () => {
 
           <div className="border-t border-[#2e2e2e]/50 pt-3 flex flex-col gap-2.5">
             <div className="flex items-center gap-2 text-xs text-[#a1a1aa]">
-              <Briefcase size={13} className="text-[#666]" />
-              <span>{job.department}</span>
+              <Building2 size={13} className="text-[#666]" />
+              <span>{job.companyName || 'Company Not Specified'}</span>
             </div>
+            {job.department && (
+              <div className="flex items-center gap-2 text-xs text-[#a1a1aa]">
+                <Briefcase size={13} className="text-[#666]" />
+                <span>{job.department}</span>
+              </div>
+            )}
             <div className="flex items-center gap-2 text-xs text-[#a1a1aa]">
               <MapPin size={13} className="text-[#666]" />
               <span>{job.location} ({job.workplace})</span>
